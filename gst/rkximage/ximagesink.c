@@ -433,6 +433,7 @@ drm_ensure_allowed_caps (GstRkXImageSink * self, drmModePlane * plane,
   int i;
   GstVideoFormat fmt;
   const gchar *format;
+  gboolean arm_afbc = FALSE, nv12_10le40 = FALSE;
 
   if (self->allowed_caps)
     return TRUE;
@@ -458,15 +459,21 @@ drm_ensure_allowed_caps (GstRkXImageSink * self, drmModePlane * plane,
       continue;
 
     if (support_afbc (self, plane, plane->formats[i]))
-      gst_caps_set_simple (out_caps, "arm-afbc",
-          GST_TYPE_INT_RANGE, 0, 1, NULL);
+      arm_afbc = TRUE;
 
     if (fmt == GST_VIDEO_FORMAT_NV12_10LE40)
-      gst_caps_set_simple (out_caps, "nv12-10le40",
-          GST_TYPE_INT_RANGE, 0, 1, NULL);
+      nv12_10le40 = TRUE;
 
     out_caps = gst_caps_merge (out_caps, caps);
   }
+
+  if (arm_afbc)
+      gst_caps_set_simple (out_caps, "arm-afbc",
+          GST_TYPE_INT_RANGE, 0, 1, NULL);
+
+  if (nv12_10le40)
+      gst_caps_set_simple (out_caps, "nv12-10le40",
+          GST_TYPE_INT_RANGE, 0, 1, NULL);
 
   self->allowed_caps = gst_caps_simplify (out_caps);
 
