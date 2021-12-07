@@ -413,9 +413,12 @@ gst_mpp_dec_fixup_video_info (GstVideoDecoder * decoder, GstVideoFormat format,
     format = GST_VIDEO_FORMAT_NV12;
 
   /* Fallback to NV12 if downstream couldn't handle NV12_10 */
-  if (format == GST_VIDEO_FORMAT_NV12_10LE40 &&
-      !gst_mpp_dec_allow_nv12_10le40 (decoder))
-    format = GST_VIDEO_FORMAT_NV12;
+  if (format == GST_VIDEO_FORMAT_NV12_10LE40) {
+    /* Fallback to NV12 if downstream couldn't handle NV12_10 */
+    if (g_getenv ("GST_MPP_DEC_DISABLE_NV12_10") ||
+        !gst_mpp_dec_allow_nv12_10le40 (decoder))
+      format = GST_VIDEO_FORMAT_NV12;
+  }
 
   gst_video_info_set_format (info, format,
       self->width ? : width, self->height ? : height);
