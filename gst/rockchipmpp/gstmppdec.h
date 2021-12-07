@@ -103,10 +103,20 @@ GType gst_mpp_dec_get_type (void);
 #define MPP_DEC_FORMATS MPP_DEC_OUT_FORMATS
 #endif
 
+#define MPP_DEC_FEATURE_ARM_AFBC "arm-afbc"
+#define MPP_DEC_FEATURE_NV12_10LE40 "nv12-10le40"
+
+gboolean gst_mpp_dec_allow_feature (GstVideoDecoder * decoder,
+    const char *feature);
+
+#define gst_mpp_dec_allow_arm_afbc(decoder) \
+  gst_mpp_dec_allow_feature (decoder, MPP_DEC_FEATURE_ARM_AFBC)
+
+#define gst_mpp_dec_allow_nv12_10le40(decoder) \
+  gst_mpp_dec_allow_feature (decoder, MPP_DEC_FEATURE_NV12_10LE40)
+
 void gst_mpp_dec_fixup_video_info (GstVideoDecoder * decoder,
     GstVideoFormat format, gint width, gint height);
-
-gboolean gst_mpp_dec_allow_afbc (GstVideoDecoder * decoder);
 
 gboolean gst_mpp_dec_update_simple_video_info (GstVideoDecoder * decoder,
     GstVideoFormat format, guint width, guint height, guint align);

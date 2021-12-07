@@ -268,6 +268,8 @@ static gboolean
 gst_mpp_dec_set_format (GstVideoDecoder * decoder, GstVideoCodecState * state)
 {
   GstMppDec *self = GST_MPP_DEC (decoder);
+  GstVideoInfo *info = &state->info;
+  GstVideoCodecState *output_state;
 
   GST_DEBUG_OBJECT (self, "setting format: %" GST_PTR_FORMAT, state->caps);
 
@@ -293,11 +295,20 @@ gst_mpp_dec_set_format (GstVideoDecoder * decoder, GstVideoCodecState * state)
 
   self->input_state = gst_video_codec_state_ref (state);
 
+  /* HACK: Do an initial negotiation before querying downstream features */
+  output_state =
+      gst_video_decoder_set_output_state (decoder, GST_VIDEO_FORMAT_NV12,
+      GST_VIDEO_INFO_WIDTH (info), GST_VIDEO_INFO_HEIGHT (info), state);
+  gst_video_codec_state_unref (output_state);
+
+  if (!gst_video_decoder_negotiate (decoder))
+    return FALSE;
+
   return TRUE;
 }
 
 gboolean
-gst_mpp_dec_allow_afbc (GstVideoDecoder * decoder)
+gst_mpp_dec_allow_feature (GstVideoDecoder * decoder, const char *feature)
 {
   GstStructure *s;
   GstCaps *caps;
@@ -308,28 +319,7 @@ gst_mpp_dec_allow_afbc (GstVideoDecoder * decoder)
     caps = gst_caps_truncate (caps);
     s = gst_caps_get_structure (caps, 0);
 
-    if (gst_structure_has_field (s, "arm-afbc"))
-      ret = TRUE;
-
-    gst_caps_unref (caps);
-  }
-
-  return ret;
-}
-
-static gboolean
-gst_mpp_dec_allow_nv12_10le40 (GstVideoDecoder * decoder)
-{
-  GstStructure *s;
-  GstCaps *caps;
-  gboolean ret = FALSE;
-
-  caps = gst_pad_get_allowed_caps (GST_VIDEO_DECODER_SRC_PAD (decoder));
-  if (caps) {
-    caps = gst_caps_truncate (caps);
-    s = gst_caps_get_structure (caps, 0);
-
-    if (gst_structure_has_field (s, "nv12-10le40"))
+    if (gst_structure_has_field (s, feature))
       ret = TRUE;
 
     gst_caps_unref (caps);
@@ -354,7 +344,7 @@ gst_mpp_dec_update_video_info (GstVideoDecoder * decoder, GstVideoFormat format,
       GST_ROUND_UP_2 (width), GST_ROUND_UP_2 (height), self->input_state);
   output_state->caps = gst_video_info_to_caps (&output_state->info);
 
-  if (gst_mpp_dec_allow_afbc (decoder)) {
+  if (gst_mpp_dec_allow_arm_afbc (decoder)) {
     if (afbc)
       GST_VIDEO_INFO_SET_AFBC (&output_state->info);
     else

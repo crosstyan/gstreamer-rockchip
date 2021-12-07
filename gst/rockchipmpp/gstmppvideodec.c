@@ -223,7 +223,7 @@ gst_mpp_video_dec_startup (GstVideoDecoder * decoder)
   mpp_frame_deinit (&mframe);
 
   if (g_getenv ("GST_MPP_VIDEODEC_USE_AFBC") &&
-      gst_mpp_dec_allow_afbc (decoder)) {
+      gst_mpp_dec_allow_arm_afbc (decoder)) {
     MppFrameFormat mpp_format = MPP_FMT_YUV420SP | MPP_FRAME_FBC_AFBC_V2;
     mppdec->mpi->control (mppdec->mpp_ctx, MPP_DEC_SET_OUTPUT_FORMAT,
         &mpp_format);
