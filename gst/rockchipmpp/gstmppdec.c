@@ -484,7 +484,7 @@ gst_mpp_dec_apply_info_change (GstVideoDecoder * decoder, MppFrame mframe)
 
   if (!gst_mpp_dec_update_video_info (decoder, dst_format,
           dst_width, dst_height, hstride, vstride, 0, afbc,
-          mpp_format == MPP_FMT_YUV420SP_10BIT))
+          dst_format == GST_VIDEO_FORMAT_NV12_10LE40))
     return GST_FLOW_NOT_NEGOTIATED;
 
   return GST_FLOW_OK;
